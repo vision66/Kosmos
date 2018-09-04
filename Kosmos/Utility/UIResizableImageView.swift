@@ -27,9 +27,14 @@ class UIResizableImageView: UIView {
         part2.image = rightImage
         self.addSubview(part2)
         
-        part1.lcAllButRight *= self.lcAllButRight
+        part1.lcTop *= self.lcTop
+        part1.lcLeft *= self.lcLeft
         part1.lcRight *= part2.lcLeft
-        part2.lcAllButLeft *= self.lcAllButLeft
+        part1.lcBottom *= self.lcBottom
+        
+        part2.lcTop *= self.lcTop
+        part2.lcLeft *= self.lcLeft
+        part2.lcBottom *= self.lcBottom
         part2.lcWidth *= part1.lcWidth
     }
 }

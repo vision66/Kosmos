@@ -3,7 +3,7 @@
 //  StudentCard
 //
 //  Created by weizhen on 16/6/16.
-//  Copyright © 2016年 vision66. All rights reserved.
+//  Copyright © 2016年 Wuhan Mengxin Technology Co., Ltd. All rights reserved.
 //
 
 #import "dispatch+Kosmos.h"

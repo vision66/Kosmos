@@ -3,7 +3,7 @@
 //  electrombile
 //
 //  Created by weizhen on 2017/11/22.
-//  Copyright © 2017年 whmx. All rights reserved.
+//  Copyright © 2017年 Wuhan Mengxin Technology Co., Ltd. All rights reserved.
 //
 
 import CoreLocation
@@ -56,7 +56,7 @@ extension CLLocationCoordinate2D {
         return false
     }
     
-    //WGS-84 to GCJ-02
+    /// WGS-84 to GCJ-02
     var WGS84toGCJ02 : CLLocationCoordinate2D {
         let wgsLat = self.latitude
         let wgsLon = self.longitude
@@ -67,7 +67,7 @@ extension CLLocationCoordinate2D {
         return CLLocationCoordinate2DMake(wgsLat + d.latitude, wgsLon + d.longitude)
     }
     
-    //GCJ-02 to WGS-84
+    /// GCJ-02 to WGS-84
     var GCJ02toWGS84 : CLLocationCoordinate2D {
         let gcjLat = self.latitude
         let gcjLon = self.longitude
@@ -78,7 +78,7 @@ extension CLLocationCoordinate2D {
         return CLLocationCoordinate2DMake(gcjLat - d.latitude, gcjLon - d.longitude)
     }
     
-    //GCJ-02 to WGS-84 exactly
+    /// GCJ-02 to WGS-84 exactly
     var GCJ02toWGS84_exact : CLLocationCoordinate2D {
         let gcjLat = self.latitude
         let gcjLon = self.longitude
@@ -105,7 +105,7 @@ extension CLLocationCoordinate2D {
         return CLLocationCoordinate2DMake(wgsLat, wgsLon)
     }
     
-    //GCJ-02 to BD-09
+    /// GCJ-02 to BD-09
     var GCJ02toBD09 : CLLocationCoordinate2D {
         let gcjLat = self.latitude
         let gcjLon = self.longitude
@@ -118,7 +118,7 @@ extension CLLocationCoordinate2D {
         return CLLocationCoordinate2DMake(bdLat, bdLon)
     }
     
-    //BD-09 to GCJ-02
+    /// BD-09 to GCJ-02
     var BD09toGCJ02 : CLLocationCoordinate2D {
         let bdLat = self.latitude
         let bdLon = self.longitude
@@ -131,18 +131,18 @@ extension CLLocationCoordinate2D {
         return CLLocationCoordinate2DMake(gcjLat, gcjLon)
     }
     
-    //WGS-84 to BD-09
+    /// WGS-84 to BD-09
     var WGS84toBD09 : CLLocationCoordinate2D {
         return self.WGS84toGCJ02.BD09toGCJ02
     }
     
-    //BD-09 to WGS-84
+    /// BD-09 to WGS-84
     var BD09toWGS84 : CLLocationCoordinate2D {
         return self.BD09toGCJ02.GCJ02toWGS84
     }
     
-    //WGS-84 to Web mercator
-    //mercatorLat -> y mercatorLon -> x
+    /// WGS-84 to Web mercator
+    /// mercatorLat -> y mercatorLon -> x
     var WGS84toMercator : CLLocationCoordinate2D {
         let wgsLat = self.latitude
         let wgsLon = self.longitude
@@ -152,8 +152,8 @@ extension CLLocationCoordinate2D {
         return CLLocationCoordinate2DMake(y, x)
     }
     
-    // Web mercator to WGS-84
-    // mercatorLat -> y mercatorLon -> x
+    /// Web mercator to WGS-84
+    /// mercatorLat -> y mercatorLon -> x
     var MercatortoWGS84 : CLLocationCoordinate2D {
         let mercatorLat = self.latitude
         let mercatorLon = self.longitude
@@ -163,7 +163,7 @@ extension CLLocationCoordinate2D {
         return CLLocationCoordinate2DMake(y, x)
     }
     
-    // two point's distance
+    /// two point's distance
     func distance(to another: CLLocationCoordinate2D) -> Double {
         let latA = self.latitude
         let lonA = self.longitude
@@ -178,5 +178,22 @@ extension CLLocationCoordinate2D {
         let alpha = acos(s)
         let distance = alpha * earthR
         return distance
+    }
+    
+    /// self~another的连线, 与正北方向的夹角
+    func azimuth(to another: CLLocationCoordinate2D) -> Double {
+        
+        let dx = another.longitude - self.longitude
+        let dy = another.latitude - self.latitude
+        
+        if dx == 0 {
+            return (dy > 0) ? 0 : Double.pi
+        }
+        
+        if dy > 0 {
+            return atan(dx / dy)
+        } else {
+            return Double.pi + atan(dx / dy)
+        }
     }
 }

@@ -3,7 +3,7 @@
 //  mxt1608s
 //
 //  Created by weizhen on 2017/1/12.
-//  Copyright © 2017年 whmx. All rights reserved.
+//  Copyright © 2017年 Wuhan Mengxin Technology Co., Ltd. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>

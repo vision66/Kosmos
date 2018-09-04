@@ -3,7 +3,7 @@
 //  demo
 //
 //  Created by weizhen on 2017/8/11.
-//  Copyright © 2017年 weizhen. All rights reserved.
+//  Copyright © 2017年 Wuhan Mengxin Technology Co., Ltd. All rights reserved.
 //
 
 import UIKit
@@ -150,7 +150,7 @@ class UIImageCroperController: UIViewController {
 //        testView.backgroundColor = UIColor.brown
 //        view.addSubview(testView)
         
-        let barItem1 = UIBarButtonItem(title: "取消", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.naviback))
+        let barItem1 = UIBarButtonItem(title: "取消", style: UIBarButtonItemStyle.plain, target: self, action: #selector(naviback))
         let barItem2 = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: self, action: nil)
         let barItem3 = UIBarButtonItem(title: "确定", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.navisave))
         

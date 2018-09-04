@@ -3,7 +3,7 @@
 //  novel
 //
 //  Created by weizhen on 2017/9/6.
-//  Copyright © 2017年 weizhen. All rights reserved.
+//  Copyright © 2017年 Wuhan Mengxin Technology Co., Ltd. All rights reserved.
 //
 
 import UIKit
@@ -18,7 +18,7 @@ class NSLayoutConstraintHelper: NSObject {
     
     var constants = [CGFloat]()
 
-    init(item: Any?, attributes:NSLayoutAttribute...) {
+    init(item: Any?, attributes: NSLayoutAttribute...) {
         super.init()
         self.item = item
         self.attributes = attributes
@@ -59,7 +59,6 @@ class NSLayoutConstraintHelper: NSObject {
             NSLayoutConstraint(item: self.item!, attribute: attr1, relatedBy: relation, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: constant1).isActive = true
         }
     }
-
 }
 
 infix operator ** : MultiplicationPrecedence
@@ -81,36 +80,6 @@ func *+(left: NSLayoutConstraintHelper, right: CGFloat) -> NSLayoutConstraintHel
 
 func *-(left: NSLayoutConstraintHelper, right: CGFloat) -> NSLayoutConstraintHelper {
     left.constants = [-right]
-    return left
-}
-
-func **(left: NSLayoutConstraintHelper, right: CGPoint) -> NSLayoutConstraintHelper {
-    left.multipliers = [right.x, right.y]
-    return left
-}
-
-func *+(left: NSLayoutConstraintHelper, right: CGPoint) -> NSLayoutConstraintHelper {
-    left.constants = [right.x, right.y]
-    return left
-}
-
-func *-(left: NSLayoutConstraintHelper, right: CGPoint) -> NSLayoutConstraintHelper {
-    left.constants = [-right.x, -right.y]
-    return left
-}
-
-func **(left: NSLayoutConstraintHelper, right: UIEdgeInsets) -> NSLayoutConstraintHelper {
-    left.multipliers = [right.left, right.right, right.top, right.bottom]
-    return left
-}
-
-func *+(left: NSLayoutConstraintHelper, right: UIEdgeInsets) -> NSLayoutConstraintHelper {
-    left.constants = [right.left, right.right, right.top, right.bottom]
-    return left
-}
-
-func *-(left: NSLayoutConstraintHelper, right: UIEdgeInsets) -> NSLayoutConstraintHelper {
-    left.constants = [-right.left, -right.right, -right.top, -right.bottom]
     return left
 }
 
@@ -142,80 +111,21 @@ func *<(left: NSLayoutConstraintHelper, right: CGFloat) {
     left.related(by: .lessThanOrEqual)
 }
 
-func *>(left: NSLayoutConstraintHelper, right: CGPoint) {
-    left.constants = [right.x, right.y]
-    left.related(by: .greaterThanOrEqual)
-}
-
-func *=(left: NSLayoutConstraintHelper, right: CGPoint) {
-    left.constants = [right.x, right.y]
-    left.related(by: .equal)
-}
-
-func *<(left: NSLayoutConstraintHelper, right: CGPoint) {
-    left.constants = [right.x, right.y]
-    left.related(by: .lessThanOrEqual)
-}
-
-func *>(left: NSLayoutConstraintHelper, right: UIEdgeInsets) {
-    left.constants = [right.left, right.right, right.top, right.bottom]
-    left.related(by: .greaterThanOrEqual)
-}
-
-func *=(left: NSLayoutConstraintHelper, right: UIEdgeInsets) {
-    left.constants = [right.left, right.right, right.top, right.bottom]
-    left.related(by: .equal)
-}
-
-func *<(left: NSLayoutConstraintHelper, right: UIEdgeInsets) {
-    left.constants = [right.left, right.right, right.top, right.bottom]
-    left.related(by: .lessThanOrEqual)
-}
-
-
 extension UIView {
     
-    var lcLeft : NSLayoutConstraintHelper           { return NSLayoutConstraintHelper(item: self, attributes: .left)    }
+    var lcTop : NSLayoutConstraintHelper            { return NSLayoutConstraintHelper(item: self, attributes: .top) }
     
-    var lcRight : NSLayoutConstraintHelper          { return NSLayoutConstraintHelper(item: self, attributes: .right)    }
+    var lcLeft : NSLayoutConstraintHelper           { return NSLayoutConstraintHelper(item: self, attributes: .left) }
     
-    var lcTop : NSLayoutConstraintHelper            { return NSLayoutConstraintHelper(item: self, attributes: .top)    }
+    var lcRight : NSLayoutConstraintHelper          { return NSLayoutConstraintHelper(item: self, attributes: .right) }
     
-    var lcBottom : NSLayoutConstraintHelper         { return NSLayoutConstraintHelper(item: self, attributes: .bottom)    }
+    var lcBottom : NSLayoutConstraintHelper         { return NSLayoutConstraintHelper(item: self, attributes: .bottom) }
     
-    var lcWidth : NSLayoutConstraintHelper          { return NSLayoutConstraintHelper(item: self, attributes: .width)    }
+    var lcWidth : NSLayoutConstraintHelper          { return NSLayoutConstraintHelper(item: self, attributes: .width) }
     
-    var lcHeight : NSLayoutConstraintHelper         { return NSLayoutConstraintHelper(item: self, attributes: .height)    }
+    var lcHeight : NSLayoutConstraintHelper         { return NSLayoutConstraintHelper(item: self, attributes: .height) }
     
-    var lcCenterX : NSLayoutConstraintHelper        { return NSLayoutConstraintHelper(item: self, attributes: .centerX)    }
+    var lcCenterX : NSLayoutConstraintHelper        { return NSLayoutConstraintHelper(item: self, attributes: .centerX) }
     
-    var lcCenterY : NSLayoutConstraintHelper        { return NSLayoutConstraintHelper(item: self, attributes: .centerY)    }
-    
-    var lcSize : NSLayoutConstraintHelper           { return NSLayoutConstraintHelper(item: self, attributes: .width, .height)    }
-    
-    var lcCenter : NSLayoutConstraintHelper         { return NSLayoutConstraintHelper(item: self, attributes: .centerX, .centerY)    }
-    
-    var lcLeftAndTop : NSLayoutConstraintHelper     { return NSLayoutConstraintHelper(item: self, attributes: .left, .top)    }
-    
-    var lcLeftAndBottom : NSLayoutConstraintHelper  { return NSLayoutConstraintHelper(item: self, attributes: .left, .bottom)    }
-    
-    var lcRightAndTop : NSLayoutConstraintHelper    { return NSLayoutConstraintHelper(item: self, attributes: .right, .top)    }
-    
-    var lcRightAndBottom : NSLayoutConstraintHelper { return NSLayoutConstraintHelper(item: self, attributes: .right, .bottom)    }
-    
-    var lcLeftAndRight : NSLayoutConstraintHelper   { return NSLayoutConstraintHelper(item: self, attributes: .left, .right)    }
-    
-    var lcTopAndBottom : NSLayoutConstraintHelper   { return NSLayoutConstraintHelper(item: self, attributes: .top, .bottom)    }
-    
-    var lcAllButLeft : NSLayoutConstraintHelper     { return NSLayoutConstraintHelper(item: self, attributes: .right, .top, .bottom)    }
-    
-    var lcAllButRight : NSLayoutConstraintHelper    { return NSLayoutConstraintHelper(item: self, attributes: .left, .top, .bottom)    }
-    
-    var lcAllButTop : NSLayoutConstraintHelper      { return NSLayoutConstraintHelper(item: self, attributes: .left, .right, .bottom)    }
-    
-    var lcAllButBottom : NSLayoutConstraintHelper   { return NSLayoutConstraintHelper(item: self, attributes: .left, .right, .top)    }
-    
-    var lcEdge : NSLayoutConstraintHelper           { return NSLayoutConstraintHelper(item: self, attributes: .left, .right, .top, .bottom)    }
+    var lcCenterY : NSLayoutConstraintHelper        { return NSLayoutConstraintHelper(item: self, attributes: .centerY) }
 }
-
-

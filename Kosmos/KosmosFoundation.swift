@@ -27,29 +27,35 @@ func *(left: Int, right: Double) -> Double { return Double(left) * right }
 func /(left: Double, right: Int) -> Double { return left / Double(right) }
 func /(left: Int, right: Double) -> Double { return Double(left) / right }
 
+/// 仿制的NSLog. 因为在swift中stderr等影响不了NSLog
 func KSLog(line: Int = #line, file: String = #file, function: String = #function, _ format: String, _ args: CVarArg...) {
     
-    let formatLine = String.init(format: "%04d", line)
+    let formatDate = Date().string(using: "yyyy-MM-dd HH:mm:ss.SSSSSSZ")
     
-    var formatFile = file.components(separatedBy: "/").last!
-    formatFile.removeLast(6)
+    let executable = Bundle.main.infoDictionary!["CFBundleExecutable"] as! String
     
-    let codeLength = 50
-    var codeMethod = "\(formatFile).\(function)"
-    if codeMethod.count > codeLength {
-       codeMethod = codeMethod.substring(from: 0, with: codeLength - 3) + "..."
-    } else {
-        while codeMethod.count < codeLength {
-            codeMethod += " "
-        }
-    }
+    //let codeMethod = { () -> String in
+    //    let showLength = 10
+    //    let codePage = file.lastPathComponent.dropLast(6)
+    //    let codeLine = String(format: " %04d", line)
+    //    var locateCode = "\(codePage).\(function)"
+    //    if locateCode.count > showLength {
+    //        locateCode = locateCode.substring(from: 0, with: showLength - 3) + "..."
+    //    } else {
+    //        while locateCode.count < showLength { locateCode += " " }
+    //    }
+    //    return locateCode + codeLine
+    //}()
     
-    let formatText = String.init(format: format, arguments: args)
+    let formatThid = { () -> String in 
+        var threadId: __uint64_t = 0
+        pthread_threadid_np(nil, &threadId)
+        return String(format: "%ld:%llu", getpid(), threadId)
+    }()
     
-    let formatDate = Date().string(using: "yyyy-MM-dd HH:mm:ss.SSS")
+    let formatText = String(format: format, arguments: args)
     
-    //print("[\(formatDate) \(formatLine)] \(formatText)")
-    print("[\(formatDate) \(formatLine) \(codeMethod)] \(formatText)")
+    print("\(formatDate) \(executable)[\(formatThid)] \(formatText)")
 }
 
 extension Int {
@@ -73,12 +79,76 @@ extension Int {
     var asNSNumber : NSNumber {
         return NSNumber(integerLiteral: self)
     }
+    
+    /// 将整数转化为星期的描述
+    var weekday : String {
+        switch self {
+        case 0:  return "星期日"
+        case 1:  return "星期一"
+        case 2:  return "星期二"
+        case 3:  return "星期三"
+        case 4:  return "星期四"
+        case 5:  return "星期五"
+        case 6:  return "星期六"
+        default: return "无法解析"
+        }
+    }
+    
+    /// 将整数转化为星期的描述
+    var shortWeekday : String {
+        switch self {
+        case 0:  return "日"
+        case 1:  return "一"
+        case 2:  return "二"
+        case 3:  return "三"
+        case 4:  return "四"
+        case 5:  return "五"
+        case 6:  return "六"
+        default: return "无法解析"
+        }
+    }
+    
+    /// 秒数转化为时长
+    var asTimeInterval : String {
+        
+        let hours = self / 3600
+        let miniutes = self % 3600 / 60
+        let seconds = self % 60
+        
+        var array = [String]()
+        if hours > 0 {
+            array.append(String(format: "%d小时", hours))
+        }
+        if miniutes > 0 {
+            array.append(String(format: "%d分钟", miniutes))
+        }
+        if seconds > 0 {
+            array.append(String(format: "%d秒", seconds))
+        }
+        
+        if array.count == 0 {
+            return "0秒"
+        } else {
+            return array.joined()
+        }
+    }
 }
 
 extension UInt8 {
     
     func add(_ another: UInt8) -> UInt8 {
         return UInt8((Int(self) + Int(another)) & 0x000000FF)
+    }
+}
+
+extension Int32 {
+    
+    var asInt : Int {
+        return Int(self)
+    }
+    
+    var asString : String {
+        return String(describing: self)
     }
 }
 
@@ -108,6 +178,10 @@ extension Float {
     
     var asInt : Int {
         return Int(self)
+    }
+    
+    var asDouble : Double {
+        return Double(self)
     }
 }
 
@@ -156,66 +230,42 @@ extension CGFloat {
 extension NSNumber {
     
     var asString : String {
-        return self.stringValue
+        return stringValue
     }
     
     var asInt : Int {
-        return self.intValue
+        return intValue
     }
     
     var asBool : Bool {
-        return self.boolValue
+        return boolValue
     }
     
     var asFloat : Float {
-        return self.floatValue
+        return floatValue
+    }
+
+    var asDouble : Double {
+        return doubleValue
     }
     
     var asCGFloat : CGFloat {
-        return self.floatValue.asCGFloat
-    }
-    
-    /// 将整数转化为星期的描述
-    var weekday : String {
-        switch self.intValue {
-        case 0:  return "星期日"
-        case 1:  return "星期一"
-        case 2:  return "星期二"
-        case 3:  return "星期三"
-        case 4:  return "星期四"
-        case 5:  return "星期五"
-        case 6:  return "星期六"
-        default: return "无法解析"
-        }
-    }
-    
-    /// 将整数转化为星期的描述
-    var shortWeekday : String {
-        switch self.intValue {
-        case 0:  return "日"
-        case 1:  return "一"
-        case 2:  return "二"
-        case 3:  return "三"
-        case 4:  return "四"
-        case 5:  return "五"
-        case 6:  return "六"
-        default: return "无法解析"
-        }
+        return floatValue.asCGFloat
     }
     
     /// 将整数转化为十六进制字符串
     var hexString : String {
-        return String(format: "%02x", self.intValue)
+        return String(format: "%02x", intValue)
     }
     
     /// 将整数转化为布尔值的描述
     var boolString : String {
-        return (self.intValue == 0) ? "false" : "true"
+        return (intValue == 0) ? "false" : "true"
     }
     
     /// 将整数转化为布尔值的描述
     var BOOLString : String {
-        return (self.intValue == 0) ? "YES" : "NO"
+        return (intValue == 0) ? "YES" : "NO"
     }
 }
 
@@ -242,7 +292,7 @@ enum NSPatternType : Int {
 extension String {
     
     var length : Int {
-        return self.count
+        return count
     }
     
     var asInt : Int {
@@ -250,8 +300,9 @@ extension String {
     }
     
     var asBool : Bool {
-        if self.lowercased() == "true" {return true}
-        if self.lowercased() == "yes" {return true}
+        let lower = lowercased()
+        if lower == "true" {return true}
+        if lower == "yes" {return true}
         let int = Int(self) ?? 0
         return (int != 0)
     }
@@ -265,11 +316,15 @@ extension String {
     }
     
     var asCGFloat : CGFloat {
-        return CGFloat(self.asFloat)
+        return CGFloat(asFloat)
     }
     
     var asURL : URL? {
         return URL(string: self)
+    }
+    
+    var asFileURL : URL {
+        return URL(fileURLWithPath: self)
     }
     
     /// 输出一个随机的唯一标识符
@@ -279,7 +334,7 @@ extension String {
     
     /// 去掉字符串头尾的空格
     var trim : String {
-        return self.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     /// 将String(base64格式)转为NSData
@@ -289,7 +344,7 @@ extension String {
     
     /// 将String以UTF8格式, 转为NSData
     var dataUsingUTF8 : Data? {
-        return self.data(using: .utf8)
+        return data(using: .utf8)
     }
     
     /// 输入类似"yyyy-MM-dd HH:mm:ss"的时间格式描述, 将String转为NSDate
@@ -301,39 +356,39 @@ extension String {
     
     /// 按照格式"yyyy-MM-dd HH:mm:ss", 将String转为NSDate
     var dateUsingDefault : Date? {
-        return self.date(using: "yyyy-MM-dd HH:mm:ss")
+        return date(using: "yyyy-MM-dd HH:mm:ss")
     }
     
     /// "0011223344".nsrangeOf(string: "1122") = (location: 2, length: 4)
-    func nsrangeOf(string aString: String) -> NSRange {
-        return (self as NSString).range(of:aString)
+    func nsrangeOf(string: String) -> NSRange {
+        return (self as NSString).range(of:string)
     }
 
     /// "0011223344".substring(from: 4, with: 4) = "22334"
     func substring(from location: Int, with length: Int) -> String {
-        let began = self.index(self.startIndex, offsetBy: location)
-        let ended = self.index(self.startIndex, offsetBy: location + length)
+        let began = index(startIndex, offsetBy: location)
+        let ended = index(startIndex, offsetBy: location + length)
         return String(self[began ..< ended])
     }
     
     /// "0011223344".substring(from: 4, to: 8) = "22334"
     func substring(from aFrom: Int, to aTo: Int) -> String {
-        let began = self.index(self.startIndex, offsetBy: aFrom)
-        let ended = self.index(self.startIndex, offsetBy: aTo + 1)
+        let began = index(startIndex, offsetBy: aFrom)
+        let ended = index(startIndex, offsetBy: aTo + 1)
         return String(self[began ..< ended])
     }
     
     /// "0011223344".substring(from: 4) = "223344"
     func substring(from aFrom: Int) -> String {
-        let began = self.index(self.startIndex, offsetBy: aFrom)
+        let began = index(startIndex, offsetBy: aFrom)
         return String(self[began...])
     }
     
     /// "0011223344".replace(from: 4, to: 8, with: "aabbcc") = "0011aabbcc4"
     func replace(from aFrom: Int, to aTo: Int, with aWith: String) -> String {
-        let began = self.index(self.startIndex, offsetBy: aFrom)
-        let ended = self.index(self.startIndex, offsetBy: aTo + 1)
-        return self.replacingCharacters(in: began ..< ended, with: aWith)
+        let began = index(startIndex, offsetBy: aFrom)
+        let ended = index(startIndex, offsetBy: aTo + 1)
+        return replacingCharacters(in: began ..< ended, with: aWith)
     }
     
     /// " !!sw\ni ft".regularReplace(pattern: "\\s", with: "") = "!!swift"
@@ -369,42 +424,103 @@ extension String {
         return ms as String
     }
     
-    /** 判断当前字符串是否符合某种规则 */
+    /// 判断当前字符串是否符合某种规则
     func isTypeOf(_ type: NSPatternType) -> Bool {
         
         let pattern : String
-        if      type == .mobile      { pattern = "^1[34578]\\d{9}$" }
-        else if type == .phone       { pattern = "^[0-9]{7,11}$" }
-        else if type == .email       { pattern = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}" }
-        else if type == .passowrd    { pattern = "^.{6,32}$" }
-        else if type == .citizenID   { pattern = "^\\d{15}|\\d{18}$" }
-        else if type == .IPAddress   { pattern = "((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?)" }
-        else if type == .number      { pattern = "^[0-9]*$" }
-        else if type == .English     { pattern = "^[A-Za-z]+$" }
-        else if type == .URL         { pattern = "\\b(([\\w-]+://?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^[:punct:]\\s]|/)))" }
-        else if type == .Chinese     { pattern = "[\\u4e00-\\u9fa5]+" }
-        else if type == .SMSCode     { pattern = "^\\d{6}$" }
-        else if type == .deviceName  { pattern = "^[a-zA-Z0-9_\\u4e00-\\u9fa5]{1,16}$" }
-        else if type == .fenceName   { pattern = "^[a-zA-Z0-9_\\u4e00-\\u9fa5]{1,16}$" }
-        else if type == .deviceIMEI  { pattern = "^[0-9]{15}$" }
-        else if type == .deviceSIM   { pattern = "^\\d{11,13}$" }
-        else if type == .balanceCmd  { pattern = "^[a-zA-Z0-9]{1,8}$" }
-        else if type == .remark      { pattern = "^.{1,60}$" }
-        else                         { pattern = "" }
-        
-        if pattern.length == 0 {
-            return false
+        switch type {
+        case .mobile:       pattern = "^\\d{11}$"
+        case .phone:        pattern = "^[0-9]{7,11}$"
+        case .email:        pattern = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}"
+        case .passowrd:     pattern = "^.{6,32}$"
+        case .citizenID:    pattern = "^\\d{15}|\\d{18}$"
+        case .IPAddress:    pattern = "((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?)"
+        case .number:       pattern = "^[0-9]*$"
+        case .English:      pattern = "^[A-Za-z]+$"
+        case .URL:          pattern = "\\b(([\\w-]+://?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^[:punct:]\\s]|/)))"
+        case .Chinese:      pattern = "[\\u4e00-\\u9fa5]+"
+        case .SMSCode:      pattern = "^\\d{6}$"
+        case .deviceName:   pattern = "^[a-zA-Z0-9_\\u4e00-\\u9fa5]{1,16}$"
+        case .fenceName:    pattern = "^[a-zA-Z0-9_\\u4e00-\\u9fa5]{1,16}$"
+        case .deviceIMEI:   pattern = "^[0-9]{15}$"
+        case .deviceSIM:    pattern = "^\\d{11,13}$"
+        case .balanceCmd:   pattern = "^[a-zA-Z0-9]{1,8}$"
+        case .remark:       pattern = "^.{1,60}$"
         }
         
-        do {
-            
-            let regex = try NSRegularExpression(pattern: pattern, options: NSRegularExpression.Options.caseInsensitive)
-            let results = regex.matches(in: self, options: NSRegularExpression.MatchingOptions.reportProgress, range: NSMakeRange(0, self.length))
+        let regular = try! NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+        let results = regular.matches(in: self, options: .reportProgress, range: NSMakeRange(0, count))
+        
+        if type != .deviceIMEI {
             return results.count > 0
         }
-        catch {
+        
+        if results.count == 0 {
+            return false
+        } else {
+            return checkIMEI(self)
+        }
+    }
+    
+    /// 校验IMEI
+    private func checkIMEI(_ imei: String) -> Bool {
+        
+        if imei.count < 15 {
             return false
         }
+        
+        let last = imei.unicodeScalars.last!
+        let left = imei.dropLast().unicodeScalars
+        
+        var sum : UInt32 = 0
+        for (offset, element) in left.enumerated() {
+            var v = element.value - 48
+            if offset % 2 != 0 {
+                let a = v * 2
+                v = (a < 10) ? a : (a - 9)
+            }
+            sum += v
+        }
+        sum %= 10
+        sum = (sum == 0) ? 0 : (10 - sum)
+        
+        return (last.value - 48) == sum
+    }
+    
+    /// 同NSString.lastPathComponent
+    var lastPathComponent : String {
+        return (self as NSString).lastPathComponent
+    }
+    
+    var deletingLastPathComponent : String {
+        return (self as NSString).deletingLastPathComponent
+    }
+    
+    var pathExtension : String {
+        return (self as NSString).pathExtension
+    }
+    
+    var localURL : URL {
+        return URL(fileURLWithPath: self)
+    }
+    
+    /// 将十六进制字符串转成数值类型. eg: "FF" -> 255
+    var asHexNumber : UInt32 {
+        let str = uppercased()
+        var sum : UInt32 = 0
+        for i in str.utf8 {
+            sum = sum * 16 + UInt32(i) - 48 // 0-9 从48开始
+            if i >= 65 { sum -= 7 }      // A-Z 从65开始，但有初始值10，所以应该是减去55
+        }
+        return sum
+    }
+}
+
+extension NSRegularExpression {
+    
+    /// convenience
+    func stringByReplacingMatches(in string: String, options: NSRegularExpression.MatchingOptions = [], withTemplate templ: String) -> String {
+        return self.stringByReplacingMatches(in: string, options: options, range: NSMakeRange(0, string.count), withTemplate: templ)
     }
 }
 
@@ -457,13 +573,24 @@ class NSTimePeriod: NSObject {
 extension Data {
 
     /// 将Data按照某种编码格式, 转为String
-    func stringUsing(encoding: String.Encoding) -> String? {
+    func string(using encoding: String.Encoding) -> String? {
         return String(data: self, encoding: encoding)
     }
         
     /// 将Data以UTF8格式, 转为String
     var stringUsingUTF8 : String? {
         return String(data: self, encoding: .utf8)
+    }
+
+    /// 依次使用'GB18030 > utf8', 进行尝试, Data转为String
+    var stringUsingAuto : String? {
+        let encodings : [String.Encoding] = [.utf8, .GB18030]
+        for encoding in encodings {
+            if let string = String(data: self, encoding: encoding) {
+                return string
+            }
+        }
+        return nil
     }
     
     /// 将NSData转为String(base64格式)
@@ -528,6 +655,10 @@ extension Dictionary {
 
 extension URL {
 
+    /// download
+    func download() throws -> Data {
+        return try Data(contentsOf: self)
+    }
 }
 
 extension Bundle {
@@ -651,6 +782,7 @@ extension FileManager {
         return path
     }
     
+    @discardableResult
     func removeFile(at path: String) -> String? {
         
         do {

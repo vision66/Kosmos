@@ -3,7 +3,7 @@
 //  UICalendar
 //
 //  Created by weizhen on 16/9/27.
-//  Copyright © 2016年 whmx. All rights reserved.
+//  Copyright © 2016年 Wuhan Mengxin Technology Co., Ltd. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

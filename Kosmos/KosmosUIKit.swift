@@ -19,36 +19,49 @@ extension UIFont {
     static func monsopacedFont(ofSize fontSize: CGFloat) -> UIFont {
         return UIFont(name: "Helvetica Neue", size: fontSize)!
     }
+    
+    static func allFontFamilys() {        
+        for familyName in UIFont.familyNames {
+            print(familyName)
+            let fontNames = UIFont.fontNames(forFamilyName: familyName)
+            for fontName in fontNames {
+                print("\t \(fontName)")
+            }
+        }
+    }
 }
 
 extension UIImage {
     
     /// 从Assets目录加载图片
-    static func assetNamed(_ name: String) -> UIImage? {
-        return UIImage(named: "Assets/" + name)
+    convenience init?(asset: String) {
+        self.init(named: "Assets/" + asset)
     }
     
-    /// 从Assets目录加载图片, 并进行九宫格方式拉伸
-    static func assetNamed(_ name: String, resizableImageWithCapInsets capInsets: UIEdgeInsets) -> UIImage? {
-        return UIImage(named: "Assets/" + name)?.resizableImage(withCapInsets: capInsets)
-    }
-    
-    /// 从Assets目录加载图片, 并进行九宫格方式拉伸
-    static func assetNamed(_ name: String, resizableImageWithCapInsets capInsets: UIEdgeInsets, resizingMode mode: UIImageResizingMode) -> UIImage? {
-        return UIImage(named: "Assets/" + name)?.resizableImage(withCapInsets: capInsets, resizingMode: mode)
-    }
-    
-    /// 以拉伸的方式, 直至将区域填满, 形成新的图片
-    func scaleToFillSize(_ size: CGSize) -> UIImage {
-        UIGraphicsBeginImageContextWithOptions(size, false, self.scale)
-        self.draw(in: CGRectMake(0, 0, size.width, size.height))
+    /// 将图片拉伸, 以填满区域. 图片可能会变形
+    func scaleToFill(toSize size: CGSize) -> UIImage {
+        UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.main.scale)
+        draw(in: CGRectMake(0, 0, size.width, size.height))
         let image = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
         return image
     }
     
-    // 长宽以相同的比例拉伸, 直至将区域填满, 形成新的图片
-    func scaleAspectFillSize(_ size: CGSize) -> UIImage {
+    /// 将图片拉伸, 以填满区域. 图片既不会变形, 也没有裁剪
+    func scaleAspectFit(toSize size: CGSize) -> UIImage {
+        let rate = self.size.width / self.size.height
+        let comp = (size.width / size.height > rate)
+        let newW = comp ? size.height * rate : size.width
+        let newH = comp ? size.height : size.width / rate        
+        UIGraphicsBeginImageContextWithOptions(CGSizeMake(newW, newH), false, UIScreen.main.scale)
+        draw(in: CGRectMake(0, 0, newW, newH))
+        let image = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        return image
+    }
+    
+    /// 将图片拉伸, 以填满区域. 图片可能会裁剪
+    func scaleAspectFill(toSize size: CGSize) -> UIImage {
         
         let sourceSize = self.size
         let targetSize = size
@@ -79,7 +92,7 @@ extension UIImage {
         
         let thumbnailRect = CGRectMake(thumbnailX, thumbnailY, thumbnailW, thumbnailH)
         
-        UIGraphicsBeginImageContextWithOptions(targetSize, false, self.scale)
+        UIGraphicsBeginImageContextWithOptions(targetSize, false, UIScreen.main.scale)
         self.draw(in: thumbnailRect)
         let image = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
@@ -111,7 +124,7 @@ extension UIImage {
     }
     
     /// 生成纯色组成的图片
-    func imageWithColor(_ color: UIColor, size: CGSize) -> UIImage {
+    static func imageWithColor(_ color: UIColor, size: CGSize) -> UIImage {
         UIGraphicsBeginImageContextWithOptions(size, false, 1.0)
         let context = UIGraphicsGetCurrentContext()!
         context.setFillColor(color.cgColor)
@@ -123,15 +136,13 @@ extension UIImage {
     
     /// 给当前图片混合颜色
     func imageWithBlendColor(_ color: UIColor) -> UIImage {
+        let rect = CGRectMake(0, 0, size.width, size.height)
         UIGraphicsBeginImageContextWithOptions(size, false, 1.0)
         let context = UIGraphicsGetCurrentContext()!
-        context.translateBy(x: 0, y: self.size.height)
+        context.translateBy(x: 0, y: size.height)
         context.scaleBy(x: 1.0, y: -1.0)
-        // CGContextTranslateCTM(context, 0, self.size.height);
-        // CGContextScaleCTM(context, 1.0, -1.0);
         context.setBlendMode(.normal)
-        let rect = CGRectMake(0, 0, self.size.width, self.size.height)
-        context.clip(to: rect, mask: self.cgImage!)
+        context.clip(to: rect, mask: cgImage!)
         context.setFillColor(color.cgColor)
         context.fill(rect)
         let newImage = UIGraphicsGetImageFromCurrentImageContext()!
@@ -223,6 +234,28 @@ extension UIImage {
         
         return data
     }
+    
+    /// 生成电量图标(深色)
+    static func darkBattery(by power: CGFloat) -> UIImage {
+        let value = (power >= 0 && power <= 100) ? power : 0
+        UIGraphicsBeginImageContextWithOptions(CGSize(width: 24, height: 12), false, 2)
+        UIImage(asset: "battery_shell_dark")!.draw(in: CGRect(x: 0, y: 0, width: 24, height: 12))
+        UIImage(asset: "battery_content_dark")!.draw(in: CGRect(x: 3, y: 3, width: 16 * value, height: 6))
+        let image = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        return image
+    }
+    
+    /// 生成电量图标(浅色)
+    static func lightBattery(by power: CGFloat) -> UIImage {
+        let value = (power >= 0 && power <= 100) ? power : 0
+        UIGraphicsBeginImageContextWithOptions(CGSize(width: 24, height: 12), false, 2)
+        UIImage(asset: "battery_shell_light")!.draw(in: CGRect(x: 0, y: 0, width: 24, height: 12))
+        UIImage(asset: "battery_content_light")!.draw(in: CGRect(x: 3, y: 3, width: 16 * value, height: 6))
+        let image = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        return image
+    }    
 }
 
 extension UIView {
@@ -485,6 +518,39 @@ extension UIButton {
             return self
         }
     }
+    
+    //枚举图片的位置
+    enum ButtonImageEdgeInsetsStyle {
+        case top    //上图下文字
+        case left   //左图右文字
+        case bottom //下图上文字
+        case right  //右图左文字
+    }
+    
+    // style:图片位置 space:图片与文字的距离
+    func layoutButtonImageEdgeInsetsStyle(style: ButtonImageEdgeInsetsStyle, space: CGFloat) {
+        
+        let imageWidth : CGFloat = (imageView?.frame.size.width)!
+        let imageHeight : CGFloat = (imageView?.frame.size.height)!
+        
+        let labelWidth = (titleLabel?.intrinsicContentSize.width)!
+        let labelHeight = (titleLabel?.intrinsicContentSize.height)!
+        
+        switch style {
+        case .top:
+            imageEdgeInsets = UIEdgeInsetsMake(-labelHeight-space/2.0, 0, 0, -labelWidth)
+            titleEdgeInsets = UIEdgeInsetsMake(0, -imageWidth, -imageHeight-space/2.0, 0)
+        case .left:
+            imageEdgeInsets = UIEdgeInsetsMake(0, -space/2.0, 0, space/2.0)
+            titleEdgeInsets = UIEdgeInsetsMake(0, space/2.0, 0, -space/2.0)
+        case .bottom:
+            imageEdgeInsets = UIEdgeInsetsMake(0, 0, -labelHeight-space/2.0, -labelWidth)
+            titleEdgeInsets = UIEdgeInsetsMake(-imageHeight-space/2.0, -imageWidth, 0, 0)
+        case .right:
+            imageEdgeInsets = UIEdgeInsetsMake(0, labelWidth+space/2.0, 0, -labelWidth-space/2.0)
+            titleEdgeInsets = UIEdgeInsetsMake(0, -labelWidth-space/2.0, 0, labelWidth+space/2.0)
+        }
+    }
 }
 
 extension UITableView {
@@ -501,7 +567,7 @@ extension UITableView {
                 label.attributedText = newValue
             } else {
                 let label = UILabel()
-                label.font = UIFont.systemFont(ofSize: 16)
+                label.font = .systemFont(ofSize: 16)
                 label.textAlignment = .center
                 label.textColor = UIColor.darkGray
                 label.isHidden = true
@@ -524,7 +590,6 @@ extension UITableViewCell {
     }
 }
 
-/// UITableViewCellStyle.Value1
 class UITableViewCellValue1 : UITableViewCell {
     
     required init?(coder aDecoder: NSCoder) {
@@ -536,7 +601,6 @@ class UITableViewCellValue1 : UITableViewCell {
     }
 }
 
-/// UITableViewCellStyle.Value2
 class UITableViewCellValue2 : UITableViewCell {
     
     required init?(coder aDecoder: NSCoder) {
@@ -548,7 +612,6 @@ class UITableViewCellValue2 : UITableViewCell {
     }
 }
 
-/// UITableViewCellStyle.Subtitle
 class UITableViewCellSubtitle : UITableViewCell {
     
     required init?(coder aDecoder: NSCoder) {
@@ -576,51 +639,69 @@ extension UITableViewHeaderFooterView {
 
 extension UISearchBar {
     
-    /// 禁用文字的自动纠错功能
+    /// 文字的自动纠错功能(首字母大写、自动纠错、检查拼写、...)
     var autoSpell : Bool {
         
         set {
-            self.autocapitalizationType = .none
-            self.autocorrectionType = .no
-            self.spellCheckingType = .no
+            if newValue {
+                autocapitalizationType = .sentences
+                autocorrectionType = .yes
+                spellCheckingType = .yes
+            } else {
+                autocapitalizationType = .none
+                autocorrectionType = .no
+                spellCheckingType = .no
+            }
         }
         
         get {
-            return self.autocapitalizationType == .none && self.autocorrectionType == .no && self.spellCheckingType == .no
+            return autocapitalizationType != .none || autocorrectionType != .no || spellCheckingType != .no
         }
     }
 }
 
 extension UITextField {
     
-    /// 禁用文字的自动纠错功能
+    /// 文字的自动纠错功能(首字母大写、自动纠错、检查拼写、...)
     var autoSpell : Bool {
         
         set {
-            self.autocapitalizationType = .none
-            self.autocorrectionType = .no
-            self.spellCheckingType = .no
+            if newValue {
+                autocapitalizationType = .sentences
+                autocorrectionType = .yes
+                spellCheckingType = .yes
+            } else {
+                autocapitalizationType = .none
+                autocorrectionType = .no
+                spellCheckingType = .no
+            }
         }
         
         get {
-            return self.autocapitalizationType == .none && self.autocorrectionType == .no && self.spellCheckingType == .no
+            return autocapitalizationType != .none || autocorrectionType != .no || spellCheckingType != .no
         }
     }
 }
 
 extension UITextView {
     
-    /// 禁用文字的自动纠错功能
+    /// 文字的自动纠错功能(首字母大写、自动纠错、检查拼写、...)
     var autoSpell : Bool {
         
         set {
-            self.autocapitalizationType = .none
-            self.autocorrectionType = .no
-            self.spellCheckingType = .no
+            if newValue {
+                autocapitalizationType = .sentences
+                autocorrectionType = .yes
+                spellCheckingType = .yes
+            } else {
+                autocapitalizationType = .none
+                autocorrectionType = .no
+                spellCheckingType = .no
+            }
         }
         
         get {
-            return self.autocapitalizationType == .none && self.autocorrectionType == .no && self.spellCheckingType == .no
+            return autocapitalizationType != .none || autocorrectionType != .no || spellCheckingType != .no
         }
     }
 }
@@ -637,12 +718,12 @@ extension UINavigationBar {
         
         set {
             if newValue == .light {
-                self.setBackgroundImage(UIImage(named: "Resource.bundle/navi_background_light"), for: .default)
+                self.setBackgroundImage(UIImage(named: "Kosmos.bundle/navi_background_light"), for: .default)
             } else if newValue == .dark {
                 if UIDevice.current.iPhoneX {
-                    self.setBackgroundImage(UIImage(named: "Resource.bundle/navi_background_dark_ipx"), for: .default)
+                    self.setBackgroundImage(UIImage(named: "Kosmos.bundle/navi_background_dark_ipx"), for: .default)
                 } else {
-                    self.setBackgroundImage(UIImage(named: "Resource.bundle/navi_background_dark"), for: .default)
+                    self.setBackgroundImage(UIImage(named: "Kosmos.bundle/navi_background_dark"), for: .default)
                 }
             } else {
                 self.setBackgroundImage(UIImage(), for: .default)
@@ -653,6 +734,31 @@ extension UINavigationBar {
             return .light
         }
     }
+    
+    /// 进入某个界面时, 要求将导航栏透明. 此方法简化这个操作
+    var transparencyFactor : (UIImage?, UIImage?, Bool)? {
+        
+        get {
+            let storedBackgroundImage = backgroundImage(for: .default)
+            let storedShadowImage = shadowImage
+            let storedTranslucent = isTranslucent
+            return (storedBackgroundImage, storedShadowImage, storedTranslucent)
+        }
+        
+        set {
+            setBackgroundImage(newValue?.0, for: .default)
+            shadowImage = newValue?.1
+            isTranslucent = newValue?.2 ?? false
+        }
+    }
+    
+    /// 设置导航栏透明
+    func setTransparency() {
+        let image = UIImage()
+        setBackgroundImage(image, for: .default)
+        shadowImage = image
+        isTranslucent = true
+    }
 }
 
 extension UINavigationController {
@@ -662,93 +768,7 @@ extension UINavigationController {
     }
 }
 
-enum UIBarButtonCustomItem: Int {
-    case back
-    case done
-    case cancel
-    case edit
-    case save
-    case append
-    case handInput
-    case scanInput
-    case compose
-    case reply
-    case action
-    case organize
-    case bookmarks
-    case search
-    case refresh
-    case stop
-    case camera
-    case trash
-    case play
-    case pause
-    case rewind
-    case fastForward
-    case undo
-    case redo
-    case date
-    case download
-    case option
-    case message
-    case none
-}
-
 extension UIBarButtonItem {
-    
-    /// 使用按钮文字生成UIBarButtonItem
-    static func barButtonItem(title: String, target: Any?, action: Selector) -> UIBarButtonItem {
-        let button = UIButton()
-        button.bounds = CGRectMake(0, 0, 44, 44)
-        button.titleLabel?.font = .systemFont(ofSize: 15)
-        button.nnTitle = title
-        button.nnTitleColor = .white
-        button.nhTitleColor = .brown
-        button.addTarget(target, action: action, for: .touchUpInside)
-        button.sizeToFit()
-        return UIBarButtonItem(customView: button)
-    }
-    
-    /// 使用图片名称生成UIBarButtonItem
-    static func barButtonItem(imageNamed: String, target: Any?, action: Selector) -> UIBarButtonItem {
-        let image = UIImage(named: imageNamed)
-        return barButtonItem(image: image, target: target, action: action)
-    }
-    
-    /// 使用图片生成UIBarButtonItem
-    static func barButtonItem(image: UIImage?, target: Any?, action: Selector) -> UIBarButtonItem {
-        let button = UIButton()
-        button.nnImage = image
-        button.addTarget(target, action: action, for: .touchUpInside)
-        button.sizeToFit()
-        return UIBarButtonItem(customView: button)
-    }
-    
-    /// 使用内置的图标
-    static func barButtonItem(customItem item: UIBarButtonCustomItem, target: Any?, action: Selector) -> UIBarButtonItem {
-        
-        let imageName: String
-        if      item == .back       {imageName = "navi_back"}
-        else if item == .save       {imageName = "navi_save"}
-        else if item == .date       {imageName = "navi_date"}
-        else if item == .trash      {imageName = "navi_trash"}
-        else if item == .handInput  {imageName = "navi_input_hand"}
-        else if item == .scanInput  {imageName = "navi_input_scan"}
-        else if item == .append     {imageName = "navi_append"}
-        else if item == .search     {imageName = "navi_search"}
-        else if item == .option     {imageName = "navi_option"}
-        else if item == .message    {imageName = "navi_message"}
-        else if item == .refresh    {imageName = "navi_refresh"}
-        else if item == .none       {imageName = "navi_none"}
-        else if item == .download   {imageName = "navi_download"}
-        else                        {imageName = ""}
-        
-        let button = UIButton()
-        button.nnImage = UIImage(named: "Resource.bundle/" + imageName)
-        button.addTarget(target, action: action, for: .touchUpInside)
-        button.sizeToFit()
-        return UIBarButtonItem(customView: button)
-    }
     
     /// 尝试将customView作为UIButton输出
     var customViewAsButton: UIButton? {
@@ -762,8 +782,6 @@ extension UIViewController {
         _ = self.navigationController?.popViewController(animated: true)
     }
 }
-
-var sharedAlertController : UIAlertController? = nil
 
 extension UIAlertController {
     
@@ -799,18 +817,16 @@ extension UIAlertController {
     
     /// 弹出提示框, 并设置点击确定后的事件
     static func showAlert(withTitle title: String?, message: String?, completion: (() -> Void)?) {
-        if sharedAlertController != nil {
+        if let presented = UIApplication.shared.keyWindow?.rootViewController?.presentedViewController {
             NSLog("want to present an UIAlertController when it is exsited, so dismiss the old one")
-            sharedAlertController?.dismiss(animated: false, completion: nil)
+            presented.dismiss(animated: false, completion: nil)
         }
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addCancel(withTitle: "确定") { (action : UIAlertAction) in
+        alert.addCancel(withTitle: "确定") { action in
             completion?()
-            sharedAlertController = nil
         }
         UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
-        sharedAlertController = alert
-    }    
+    }
     
     /// 弹出询问框, 并设置点击确定后的事件
     static func showQuestion(withMessage message: String?, completion: (() -> Void)?) {
@@ -819,20 +835,18 @@ extension UIAlertController {
     
     /// 弹出询问框, 并设置点击确定后的事件
     static func showQuestion(withTitle title: String?, message: String?, completion: (() -> Void)?) {
-        if sharedAlertController != nil {
+        if let presented = UIApplication.shared.keyWindow?.rootViewController?.presentedViewController {
             NSLog("want to present an UIAlertController when it is exsited, so dismiss the old one")
-            sharedAlertController?.dismiss(animated: false, completion: nil)
+            presented.dismiss(animated: false, completion: nil)
         }
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addDefault(withTitle: "确定") { (action : UIAlertAction) in
+        alert.addDefault(withTitle: "确定") { action in
             completion?()
-            sharedAlertController = nil
         }
-        alert.addCancel(withTitle: "取消") { (action : UIAlertAction) in
-            sharedAlertController = nil
+        alert.addCancel(withTitle: "取消") { action in
+            
         }
         UIApplication.shared.keyWindow?.rootViewController?.present(alert, animated: true, completion: nil)
-        sharedAlertController = alert
     }
 }
 
@@ -857,29 +871,18 @@ extension UIDevice {
 class UIGlowLabel: UILabel {
     
     /// 发光区域的偏移
-    var glowOffset : CGSize
+    var glowOffset : CGSize = .zero
     
     /// 发光区域的颜色
-    var glowColor : UIColor
+    var glowColor : UIColor = .black
     
     /// 发光区域的长度
-    var glowSize : CGFloat
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    override init(frame: CGRect) {
-        self.glowOffset = CGSizeMake(0, 0)
-        self.glowColor = UIColor.white
-        self.glowSize = 2.0
-        super.init(frame: frame)
-    }
+    var glowSize : CGFloat = 2.0
     
     override func drawText(in rect: CGRect) {
         let context = UIGraphicsGetCurrentContext()!
         context.saveGState()
-        context.setShadow(offset: self.glowOffset, blur: self.glowSize, color: self.glowColor.cgColor)
+        context.setShadow(offset: glowOffset, blur: glowSize, color: glowColor.cgColor)
         super.drawText(in: rect)
         context.restoreGState()
     }
@@ -899,236 +902,18 @@ class UIImageViewWithBadge: UIImageView {
         super.init(frame: frame)
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.textAlignment = .right
-        textLabel.font = UIFont.systemFont(ofSize: 8)
+        textLabel.font = .systemFont(ofSize: 8)
+        textLabel.shadowColor = UIColor.white
+        textLabel.shadowOffset = CGSizeMake(-1, 1)
         addSubview(textLabel)
-        NSLayoutConstraint(item: textLabel, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .right, multiplier: 1.0, constant: 0.0).isActive = true
-        NSLayoutConstraint(item: textLabel, attribute: .top, relatedBy: .equal, toItem: self, attribute: .top, multiplier: 1.0, constant: -10.0).isActive = true
+        NSLayoutConstraint(item: textLabel, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .right, multiplier: 1.0, constant: -2.0).isActive = true
+        NSLayoutConstraint(item: textLabel, attribute: .top, relatedBy: .equal, toItem: self, attribute: .top, multiplier: 1.0, constant: -6.0).isActive = true
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-}
-
-/// 使用流式布局的一组标记
-class UIMarkSymbols: UIFlowLayoutView {
-    
-    let template : UIButton = {
-        let button = UIButton()
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 12)
-        button.nnTitleColor = UIColor(hexInteger: 0x383838)
-        button.snTitleColor = UIColor(hexInteger: 0xd43c33)
-        button.layer.masksToBounds = true
-        button.layer.cornerRadius = 2.0
-        button.layer.borderWidth = 1.0
-        button.layer.borderColor = UIColor(hexInteger: 0xd3d3d3).cgColor
-        button.contentEdgeInsets = UIEdgeInsetsMake(4, 4, 4, 4)
-        return button
-    }()
-    
-    var symbols : [String] {
-        
-        get {
-            let buttons = subviews as! [UIButton]
-            return buttons.map { $0.nnTitle! }
-        }
-        
-        set {
-            
-            for view in subviews {
-                view.removeFromSuperview()
-            }
-            
-            for value in newValue {
-                let button = UIButton()
-                button.sameto = template
-                button.nnTitle = value
-                button.sizeToFit()
-                addSubview(button)
-            }
-        }
-    }
-}
-
-/// 流式布局, 排列方式
-enum UIFlowLayoutViewScrollDirection : Int {
-    
-    case vertical
-    
-    case horizontal
-}
-
-/// 流式布局, items将按照类似于`书写方式`进行布局. items需要在加入前, 指定bound
-class UIFlowLayoutView: UIView {
-    
-    var lineSpace : CGFloat = 6
-    
-    var itemSpace : CGFloat = 10
-    
-    var direction : UIFlowLayoutViewScrollDirection = .horizontal
-    
-    override var intrinsicContentSize: CGSize {
-        
-        let width = self.bounds.size.width
-        let height = self.bounds.size.height
-        
-        if direction == .horizontal {
-            let height = sizeThatFits(CGSizeMake(width, CGFloat.greatestFiniteMagnitude)).height
-            let size = CGSizeMake(width, height)
-            return size
-        } else {
-            let width = sizeThatFits(CGSizeMake(CGFloat.greatestFiniteMagnitude, height)).width
-            let size = CGSizeMake(width, height)
-            return size
-        }
-    }
-    
-    override func sizeThatFits(_ size: CGSize) -> CGSize {
-        
-        let width = size.width
-        let height = size.height
-        
-        if direction == .horizontal {
-            
-            var lastY : CGFloat = 0
-            var right : CGFloat = -itemSpace
-            var maxWidth : CGFloat = 0
-            var maxHeight : CGFloat = 0
-            
-            for view in subviews {
-                
-                var x = right + itemSpace
-                var y = lastY
-                let w = view.bounds.size.width
-                let h = view.bounds.size.height
-                
-                if  x + w > width {
-                    x = 0
-                    y = maxHeight + lineSpace
-                }
-                
-                lastY = y
-                right = x + w
-                
-                if  maxHeight < y + h {
-                    maxHeight = y + h
-                }
-                
-                if  maxWidth < right {
-                    maxWidth = right
-                }
-            }
-            
-            return CGSizeMake(maxWidth, maxHeight)
-        }
-        else {
-            
-            var lastX : CGFloat = 0
-            var bottom : CGFloat = -itemSpace
-            var maxWidth : CGFloat = 0
-            var maxHeight : CGFloat = 0
-            
-            for view in subviews {
-                
-                var x = lastX
-                var y = bottom + itemSpace
-                let w = view.bounds.size.width
-                let h = view.bounds.size.height
-                
-                if  y + h > height {
-                    x = maxWidth + lineSpace
-                    y = 0
-                }
-                
-                lastX = x
-                bottom = y + h
-                
-                if  maxHeight < y + h {
-                    maxHeight = y + h
-                }
-                
-                if  maxWidth < x + w {
-                    maxWidth = x + w
-                }
-            }
-            
-            return CGSizeMake(maxWidth, maxHeight)
-        }
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        
-        let width = self.bounds.size.width
-        let height = self.bounds.size.height
-        
-        if direction == .horizontal {
-            var lastY : CGFloat = 0
-            var right : CGFloat = -itemSpace
-            var maxWidth : CGFloat = 0
-            var maxHeight : CGFloat = 0
-            
-            for view in subviews {
-                
-                var x = right + itemSpace
-                var y = lastY
-                let w = view.bounds.size.width
-                let h = view.bounds.size.height
-                
-                if  x + w > width {
-                    x = 0
-                    y = maxHeight + lineSpace
-                }
-                
-                view.frame = CGRectMake(x, y, w, h)
-                
-                lastY = y
-                right = x + w
-                
-                if  maxHeight < y + h {
-                    maxHeight = y + h
-                }
-                
-                if  maxWidth < right {
-                    maxWidth = right
-                }
-            }
-        }
-        else {
-            
-            var lastX : CGFloat = 0
-            var bottom : CGFloat = -itemSpace
-            var maxWidth : CGFloat = 0
-            var maxHeight : CGFloat = 0
-            
-            for view in subviews {
-                
-                var x = lastX
-                var y = bottom + itemSpace
-                let w = view.bounds.size.width
-                let h = view.bounds.size.height
-                
-                if  y + h > height {
-                    x = maxWidth + lineSpace
-                    y = 0
-                }
-                
-                view.frame = CGRectMake(x, y, w, h)
-                
-                lastX = x
-                bottom = y + h
-                
-                if  maxHeight < y + h {
-                    maxHeight = y + h
-                }
-                
-                if  maxWidth < x + w {
-                    maxWidth = x + w
-                }
-            }
-        }
-    }
 }
 
 /// 可收缩的视图
@@ -1171,7 +956,6 @@ class UIShrinkableView: UIView {
     func show() {
         
         self.isHidden = false
-        
         self.delegate?.shrinkableView(self, willShown: true)
         
         UIView.animate(withDuration: 0.4, animations: {

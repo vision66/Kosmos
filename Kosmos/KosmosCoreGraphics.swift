@@ -32,6 +32,7 @@ extension CGRect {
     
     /// 根据center和size来生成CGRect
     init(center: CGPoint, size: CGSize) {
+        self.init()
         self.origin = CGPoint(x: center.x - size.width / 2, y: center.y - size.height / 2)
         self.size = size
     }
@@ -50,5 +51,20 @@ extension CGContext {
     
     func setFillColor(hex: Int, alpha: CGFloat) {
         self.setFillColor(red: ((hex >> 16) & 0xFF) / 255.0, green: ((hex >> 8) & 0xFF) / 255.0, blue: ((hex) & 0xFF) / 255.0, alpha: alpha)
+    }
+    
+    func drawLine(from began: CGPoint, to ended: CGPoint) {
+        beginPath()
+        move(to: began)
+        addLine(to: ended)
+        strokePath()
+    }
+    
+    func addLine(with point: CGPoint, startPoint: Bool) {
+        if startPoint {
+            move(to: point)
+        } else {
+            addLine(to: point)
+        }
     }
 }

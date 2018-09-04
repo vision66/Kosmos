@@ -3,7 +3,7 @@
 //  demo
 //
 //  Created by weizhen on 2017/8/3.
-//  Copyright © 2017年 weizhen. All rights reserved.
+//  Copyright © 2017年 Wuhan Mengxin Technology Co., Ltd. All rights reserved.
 //
 
 import Foundation
@@ -71,7 +71,7 @@ class SQLite: NSObject {
             
             let obj = formatSQL[Int(col)]
             
-            result = self.bindObject(obj, toColumn: col, inStatement: stmt)
+            result = bindObject(obj, toColumn: col, inStatement: stmt)
             if result != SQLITE_OK {
                 print("SQLite: bindObject error = \(result), sql=\(SQL)")
                 sqlite3_finalize(stmt)
@@ -82,11 +82,13 @@ class SQLite: NSObject {
         result = sqlite3_step(stmt)
         if result != SQLITE_DONE {
             print("SQLite: sqlite3_step error = \(result), sql=\(SQL)")
+            return result
         }
         
         result = sqlite3_finalize(stmt)
         if result != SQLITE_OK {
             print("SQLite: sqlite3_finalize error = \(result), sql=\(SQL)")
+            return result
         }
         
         return result

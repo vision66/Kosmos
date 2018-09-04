@@ -1,9 +1,9 @@
 //
 //  UIImageShowerController.swift
-//  character
+//  Library
 //
 //  Created by weizhen on 2018/2/28.
-//  Copyright © 2018年 weizhen. All rights reserved.
+//  Copyright © 2018年 Wuhan Mengxin Technology Co., Ltd. All rights reserved.
 //
 
 import UIKit

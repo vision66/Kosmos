@@ -3,7 +3,7 @@
 //  novel
 //
 //  Created by weizhen on 2017/9/6.
-//  Copyright © 2017年 weizhen. All rights reserved.
+//  Copyright © 2017年 Wuhan Mengxin Technology Co., Ltd. All rights reserved.
 //
 
 import UIKit
