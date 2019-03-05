@@ -14,17 +14,17 @@ class NSLayoutConstraintHelper: NSObject {
     
     var multipliers = [CGFloat]()
     
-    var attributes = [NSLayoutAttribute]()
+    var attributes = [NSLayoutConstraint.Attribute]()
     
     var constants = [CGFloat]()
 
-    init(item: Any?, attributes: NSLayoutAttribute...) {
+    init(item: Any?, attributes: NSLayoutConstraint.Attribute...) {
         super.init()
         self.item = item
         self.attributes = attributes
     }
     
-    func related(by relation: NSLayoutRelation, toRight: NSLayoutConstraintHelper) {
+    func related(by relation: NSLayoutConstraint.Relation, toRight: NSLayoutConstraintHelper) {
         
         let count = self.attributes.count
         
@@ -46,7 +46,7 @@ class NSLayoutConstraintHelper: NSObject {
         }
     }
     
-    func related(by relation: NSLayoutRelation) {
+    func related(by relation: NSLayoutConstraint.Relation) {
         
         let count = self.attributes.count
 

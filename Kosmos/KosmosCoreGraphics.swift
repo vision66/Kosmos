@@ -41,6 +41,36 @@ extension CGRect {
     var center : CGPoint {
         return CGPoint(x: origin.x + size.width / 2, y: origin.y + size.height / 2)
     }
+    
+    /// size scaled to fit with fixed aspect. remainder is transparent
+    func scaleAspectFit(by size: CGSize) -> CGRect {
+        var size_w = size.width
+        var size_h = size.height
+        let size_rate = size.width / size.height
+        if size_rate < self.size.width / self.size.height {
+            size_w = self.size.height * size_rate
+            size_h = self.size.height
+        } else {
+            size_w = self.size.width
+            size_h = self.size.width / size_rate
+        }
+        return CGRect(x: self.origin.x + self.size.width / 2 - size_w / 2, y: self.origin.y + self.size.height / 2 - size_h / 2, width: size_w, height: size_h)
+    }
+    
+    /// size scaled to fill with fixed aspect. some portion of content may be clipped.
+    func scaleAspectFill(by size: CGSize) -> CGRect {
+        var size_w = size.width
+        var size_h = size.height
+        let size_rate = size.width / size.height
+        if size_rate > self.size.width / self.size.height {
+            size_w = self.size.height * size_rate
+            size_h = self.size.height
+        } else {
+            size_w = self.size.width
+            size_h = self.size.width / size_rate
+        }
+        return CGRect(x: self.origin.x + self.size.width / 2 - size_w / 2, y: self.origin.y + self.size.height / 2 - size_h / 2, width: size_w, height: size_h)
+    }
 }
 
 extension CGContext {

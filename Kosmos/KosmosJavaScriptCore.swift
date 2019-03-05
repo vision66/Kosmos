@@ -41,13 +41,13 @@ extension JSValue {
     
     open override var description: String {
         if self.isNull { return "(Null)null" }
-        if self.isNumber { return "(Number)\(toNumber())" }
-        if self.isString { return "(String)\(toString())" }
-        if self.isDate { return "(Date)\(toDate())" }
+        if self.isNumber { return "(Number)\(toNumber()?.description ?? "null")" }
+        if self.isString { return "(String)\(toString() ?? "null")" }
+        if self.isDate { return "(Date)\(toDate()?.description ?? "null")" }
         if self.isUndefined { return "(Undefined)Undefined" }
         if self.isBoolean { return "(Boolean)\(toBool())" }
-        if self.isArray { return "(Array)\(toArray())" }
-        if self.isObject { return "(Object)\(toObject())" }
+        if self.isArray { return "(Array)\(toArray()?.description ?? "null")" }
+        if self.isObject { return "(Object)\(toObject().debugDescription )" }
         return "(Unknown)\(self)"
     }
     

@@ -53,7 +53,7 @@ class UIImageShowerController: UIViewController, UIScrollViewDelegate {
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: returnButton)
 
         navigationBar.setBackgroundImage(UIImage(named: "bg111"), for: .default)
-        navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.white, NSAttributedStringKey.font: UIFont.systemFont(ofSize: 20)]
+        navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white, NSAttributedString.Key.font: UIFont.systemFont(ofSize: 20)]
         navigationBar.isTranslucent = true
         navigationBar.translatesAutoresizingMaskIntoConstraints = false
         navigationBar.pushItem(navigationItem, animated: false)
@@ -64,7 +64,7 @@ class UIImageShowerController: UIViewController, UIScrollViewDelegate {
         scrollView.isPagingEnabled = true
         scrollView.isScrollEnabled = true
         view.addSubview(scrollView)
-        view.sendSubview(toBack: scrollView)
+        view.sendSubviewToBack(scrollView)
         
         pageControl.translatesAutoresizingMaskIntoConstraints = false
         pageControl.hidesForSinglePage = true

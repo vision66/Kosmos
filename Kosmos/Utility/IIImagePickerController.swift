@@ -9,7 +9,10 @@
 import UIKit
 
 
-let UIImagePickerControllerCropSize: String = "UIImagePickerControllerCropSize" // an NSValue (CGSize)
+extension UIImagePickerController.InfoKey {
+    
+    public static let cropSize: UIImagePickerController.InfoKey = UIImagePickerController.InfoKey(rawValue: "UIImagePickerControllerCropSize") // an NSValue (CGSize)
+}
 
 
 class IIImagePickerController: UIImagePickerController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -21,18 +24,12 @@ class IIImagePickerController: UIImagePickerController, UIImagePickerControllerD
     ///
     /// The keys for this dictionary are listed in Editing Information Keys.
     ///
-    var mediaInfo = [String : Any]()
+    var mediaInfo = [UIImagePickerController.InfoKey : Any]()
     
     /// the crop area size, default is (0.0, 0.0).
     var cropSize : CGSize {
-        
-        set {
-            self.mediaInfo[UIImagePickerControllerCropSize] = newValue
-        }
-        
-        get {
-            return self.mediaInfo[UIImagePickerControllerCropSize] as? CGSize ?? CGSize.zero
-        }
+        set { self.mediaInfo[UIImagePickerController.InfoKey.cropSize] = newValue }
+        get { return self.mediaInfo[UIImagePickerController.InfoKey.cropSize] as? CGSize ?? CGSize.zero }
     }
     
     ///
@@ -49,7 +46,7 @@ class IIImagePickerController: UIImagePickerController, UIImagePickerControllerD
         self.delegate = self
     }
     
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         
         for item in info {
             self.mediaInfo[item.key] = item.value
@@ -79,43 +76,9 @@ class IIImagePickerController: UIImagePickerController, UIImagePickerControllerD
 
 protocol IIImagePickerControllerDelegate : NSObjectProtocol {
     
-    func imagePickerControllerEx(_ picker: IIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any])
+    func imagePickerControllerEx(_ picker: IIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any])
     
     func imagePickerControllerExDidCancel(_ picker: IIImagePickerController)
-}
-
-
-extension CGRect {
-    
-    /// size scaled to fit with fixed aspect. remainder is transparent
-    func scaleAspectFit(by size: CGSize) -> CGRect {
-        var size_w = size.width
-        var size_h = size.height
-        let size_rate = size.width / size.height
-        if size_rate < self.size.width / self.size.height {
-            size_w = self.size.height * size_rate
-            size_h = self.size.height
-        } else {
-            size_w = self.size.width
-            size_h = self.size.width / size_rate
-        }
-        return CGRect(x: self.origin.x + self.size.width / 2 - size_w / 2, y: self.origin.y + self.size.height / 2 - size_h / 2, width: size_w, height: size_h)
-    }
-    
-    /// size scaled to fill with fixed aspect. some portion of content may be clipped.
-    func scaleAspectFill(by size: CGSize) -> CGRect {
-        var size_w = size.width
-        var size_h = size.height
-        let size_rate = size.width / size.height
-        if size_rate > self.size.width / self.size.height {
-            size_w = self.size.height * size_rate
-            size_h = self.size.height
-        } else {
-            size_w = self.size.width
-            size_h = self.size.width / size_rate
-        }
-        return CGRect(x: self.origin.x + self.size.width / 2 - size_w / 2, y: self.origin.y + self.size.height / 2 - size_h / 2, width: size_w, height: size_h)
-    }
 }
 
 
@@ -125,7 +88,7 @@ class UIImageCroperController: UIViewController {
     
     let maskView = UIImageCroperMask()
     
-//    let testView = UIImageView()
+//let testView = UIImageView()
     
     let toolbar = UIToolbar()
     
@@ -141,18 +104,18 @@ class UIImageCroperController: UIViewController {
         super.loadView()
         self.view.backgroundColor = UIColor.white
         
-        imageView.image = self.imagePickerContoller.mediaInfo[UIImagePickerControllerOriginalImage] as? UIImage
+        imageView.image = self.imagePickerContoller.mediaInfo[UIImagePickerController.InfoKey.originalImage] as? UIImage
         view.addSubview(imageView)
         
-        maskView.cropSize = self.imagePickerContoller.mediaInfo[UIImagePickerControllerCropSize] as! CGSize
+        maskView.cropSize = self.imagePickerContoller.mediaInfo[UIImagePickerController.InfoKey.cropSize] as! CGSize
         view.addSubview(maskView)
         
-//        testView.backgroundColor = UIColor.brown
-//        view.addSubview(testView)
+//testView.backgroundColor = UIColor.brown
+//view.addSubview(testView)
         
-        let barItem1 = UIBarButtonItem(title: "取消", style: UIBarButtonItemStyle.plain, target: self, action: #selector(naviback))
-        let barItem2 = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.flexibleSpace, target: self, action: nil)
-        let barItem3 = UIBarButtonItem(title: "确定", style: UIBarButtonItemStyle.plain, target: self, action: #selector(self.navisave))
+        let barItem1 = UIBarButtonItem(title: "取消", style: UIBarButtonItem.Style.plain, target: self, action: #selector(naviback))
+        let barItem2 = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: self, action: nil)
+        let barItem3 = UIBarButtonItem(title: "确定", style: UIBarButtonItem.Style.plain, target: self, action: #selector(self.navisave))
         
         toolbar.barStyle = .black
         toolbar.items = [barItem1, barItem2, barItem3]
@@ -324,8 +287,8 @@ class UIImageCroperController: UIViewController {
 //self.testView.frame = CGRect(x: 0, y: 0, width: cropRect.size.width, height: cropRect.size.height)
 //self.testView.image = cropped
         
-        imagePickerContoller.mediaInfo[UIImagePickerControllerCropRect] = lastRect
-        imagePickerContoller.mediaInfo[UIImagePickerControllerEditedImage] = cropped
+        imagePickerContoller.mediaInfo[UIImagePickerController.InfoKey.cropRect] = lastRect
+        imagePickerContoller.mediaInfo[UIImagePickerController.InfoKey.editedImage] = cropped
         imagePickerContoller.delegate2?.imagePickerControllerEx(imagePickerContoller, didFinishPickingMediaWithInfo: imagePickerContoller.mediaInfo)
     }
 }

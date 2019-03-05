@@ -459,7 +459,7 @@ class UIVerificationNavigation : UIView {
         get { return cancelButton.isHidden }
     }
     
-    func addTarget(_ target: Any?, action: Selector, for controlEvents: UIControlEvents) {
+    func addTarget(_ target: Any?, action: Selector, for controlEvents: UIControl.Event) {
         cancelButton.addTarget(target, action: action, for: controlEvents)
     }
 }

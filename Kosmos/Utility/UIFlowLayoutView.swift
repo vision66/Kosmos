@@ -229,7 +229,7 @@ class UIFlowLayoutViewCell: UIView {
     }
     
     override var intrinsicContentSize: CGSize {
-        return contentView.systemLayoutSizeFitting(UILayoutFittingExpandedSize)
+        return contentView.systemLayoutSizeFitting(UIView.layoutFittingExpandedSize)
     }
 }
 

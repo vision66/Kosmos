@@ -7,6 +7,10 @@
 
 import UIKit
 
+func UIEdgeInsetsMake(_ top: CGFloat, _ left: CGFloat, _ bottom: CGFloat, _ right: CGFloat) -> UIEdgeInsets {
+    return UIEdgeInsets(top: top, left: left, bottom: bottom, right: right)
+}
+
 extension UIColor {
     
     convenience init(hexInteger: Int, alpha: CGFloat = 1.0) {
@@ -108,19 +112,14 @@ extension UIImage {
         
         let sourceImage = self
         
-        var imageData = UIImageJPEGRepresentation(sourceImage, curCompression)!
+        var imageData = sourceImage.jpegData(compressionQuality: curCompression)!
         
         while imageData.count > maxFileSize && curCompression > maxCompression {
             curCompression -= 0.1
-            imageData = UIImageJPEGRepresentation(sourceImage, curCompression)!
+            imageData = sourceImage.jpegData(compressionQuality: curCompression)!
         }
         
         return imageData
-    }
-    
-    /// 输出PNG格式的图片数据
-    var pngData : Data {
-        return UIImagePNGRepresentation(self)!
     }
     
     /// 生成纯色组成的图片
@@ -255,7 +254,44 @@ extension UIImage {
         let image = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
         return image
-    }    
+    }
+    
+    /// 当前的桌面图标
+    static func appIcon() -> UIImage? {
+
+        guard let bundleIcons = Bundle.main.infoDictionary?["CFBundleIcons"] as? [String : Any] else { return nil }
+        
+        guard let bundlePrimaryIcon = bundleIcons["CFBundlePrimaryIcon"] as? [String : Any] else { return nil }
+        
+        guard let bundleIconFiles = bundlePrimaryIcon["CFBundleIconFiles"] as? [String] else { return nil }
+        
+        guard let first = bundleIconFiles.first else { return nil }
+        
+        return UIImage(named: first)
+    }
+    
+    /// 当前的启动图片
+    static func launchImage() -> UIImage? {
+        
+        let screenSize = UIScreen.main.bounds.size
+        let screenOrientation = UIApplication.shared.statusBarOrientation.isPortrait ? "Portrait" : "Landscape"
+        //KSLog("screenOrientation = \(screenOrientation) and screenSize = \(screenSize)")
+        
+        guard let images = Bundle.main.infoDictionary?["UILaunchImages"] as? [[String: String]] else { return nil }
+        
+        for image in images {
+            let imageOrientation = image["UILaunchImageOrientation"]
+            let imageSize = image["UILaunchImageSize"]
+            let imageName = image["UILaunchImageName"]
+            //KSLog("load \(imageName!) and orientation = \(imageOrientation!) and size = \(NSCoder.cgSize(for: imageSize!))")
+            // TODO: 这里可能会出现找不到图片的BUG,需要设计算法寻找最适合的图片
+            if NSCoder.cgSize(for: imageSize!) == screenSize && imageOrientation == screenOrientation {
+                return UIImage(named: imageName!)
+            }
+        }
+        
+        return nil
+    }
 }
 
 extension UIView {
@@ -373,20 +409,20 @@ extension UIButton {
     
     /// 设置选中时的普通文字
     var snTitle : String? {
-        set { self.setTitle(newValue, for: UIControlState.selected.union(.normal)) }
-        get { return self.title(for: UIControlState.selected.union(.normal)) }
+        set { self.setTitle(newValue, for: UIControl.State.selected.union(.normal)) }
+        get { return self.title(for: UIControl.State.selected.union(.normal)) }
     }
     
     /// 设置选中时的高亮文字
     var shTitle : String? {
-        set { self.setTitle(newValue, for: UIControlState.selected.union(.highlighted)) }
-        get { return self.title(for: UIControlState.selected.union(.highlighted)) }
+        set { self.setTitle(newValue, for: UIControl.State.selected.union(.highlighted)) }
+        get { return self.title(for: UIControl.State.selected.union(.highlighted)) }
     }
     
     /// 设置选中时的禁用文字
     var sdTitle : String? {
-        set { self.setTitle(newValue, for: UIControlState.selected.union(.disabled)) }
-        get { return self.title(for: UIControlState.selected.union(.disabled)) }
+        set { self.setTitle(newValue, for: UIControl.State.selected.union(.disabled)) }
+        get { return self.title(for: UIControl.State.selected.union(.disabled)) }
     }
     
     /// 设置普通文字颜色
@@ -409,20 +445,20 @@ extension UIButton {
     
     /// 设置选中时的普通文字颜色
     var snTitleColor : UIColor? {
-        set { self.setTitleColor(newValue, for: UIControlState.selected.union(.normal)) }
-        get { return self.titleColor(for: UIControlState.selected.union(.normal)) }
+        set { self.setTitleColor(newValue, for: UIControl.State.selected.union(.normal)) }
+        get { return self.titleColor(for: UIControl.State.selected.union(.normal)) }
     }
     
     /// 设置选中时的高亮文字颜色
     var shTitleColor : UIColor? {
-        set { self.setTitleColor(newValue, for: UIControlState.selected.union(.highlighted)) }
-        get { return self.titleColor(for: UIControlState.selected.union(.highlighted)) }
+        set { self.setTitleColor(newValue, for: UIControl.State.selected.union(.highlighted)) }
+        get { return self.titleColor(for: UIControl.State.selected.union(.highlighted)) }
     }
     
     /// 设置选中时的禁用文字
     var sdTitleColor : UIColor? {
-        set { self.setTitleColor(newValue, for: UIControlState.selected.union(.disabled)) }
-        get { return self.titleColor(for: UIControlState.selected.union(.disabled)) }
+        set { self.setTitleColor(newValue, for: UIControl.State.selected.union(.disabled)) }
+        get { return self.titleColor(for: UIControl.State.selected.union(.disabled)) }
     }
     
     /// 设置普通图片
@@ -445,20 +481,20 @@ extension UIButton {
     
     /// 设置选中时的普通图片
     var snImage : UIImage? {
-        set { self.setImage(newValue, for: UIControlState.selected.union(.normal)) }
-        get { return self.image(for: UIControlState.selected.union(.normal)) }
+        set { self.setImage(newValue, for: UIControl.State.selected.union(.normal)) }
+        get { return self.image(for: UIControl.State.selected.union(.normal)) }
     }
     
     /// 设置选中时的高亮图片
     var shImage : UIImage? {
-        set { self.setImage(newValue, for: UIControlState.selected.union(.highlighted)) }
-        get { return self.image(for: UIControlState.selected.union(.highlighted)) }
+        set { self.setImage(newValue, for: UIControl.State.selected.union(.highlighted)) }
+        get { return self.image(for: UIControl.State.selected.union(.highlighted)) }
     }
     
     /// 设置选中时的禁用图片
     var sdImage : UIImage? {
-        set { self.setImage(newValue, for: UIControlState.selected.union(.disabled)) }
-        get { return self.image(for: UIControlState.selected.union(.disabled)) }
+        set { self.setImage(newValue, for: UIControl.State.selected.union(.disabled)) }
+        get { return self.image(for: UIControl.State.selected.union(.disabled)) }
     }
     
     /// 设置普通背景
@@ -481,20 +517,20 @@ extension UIButton {
     
     /// 设置选中时的普通背景
     var snBackgroundImage : UIImage? {
-        set { self.setBackgroundImage(newValue, for: UIControlState.selected.union(.normal)) }
-        get { return self.backgroundImage(for: UIControlState.selected.union(.normal)) }
+        set { self.setBackgroundImage(newValue, for: UIControl.State.selected.union(.normal)) }
+        get { return self.backgroundImage(for: UIControl.State.selected.union(.normal)) }
     }
     
     /// 设置选中时的高亮背景
     var shBackgroundImage : UIImage? {
-        set { self.setBackgroundImage(newValue, for: UIControlState.selected.union(.highlighted)) }
-        get { return self.backgroundImage(for: UIControlState.selected.union(.highlighted)) }
+        set { self.setBackgroundImage(newValue, for: UIControl.State.selected.union(.highlighted)) }
+        get { return self.backgroundImage(for: UIControl.State.selected.union(.highlighted)) }
     }
     
     /// 设置选中时的禁用背景
     var sdBackgroundImage : UIImage? {
-        set { self.setBackgroundImage(newValue, for: UIControlState.selected.union(.disabled)) }
-        get { return self.backgroundImage(for: UIControlState.selected.union(.disabled)) }
+        set { self.setBackgroundImage(newValue, for: UIControl.State.selected.union(.disabled)) }
+        get { return self.backgroundImage(for: UIControl.State.selected.union(.disabled)) }
     }
     
     /// 使用其他按钮的风格进行配置
@@ -538,17 +574,17 @@ extension UIButton {
         
         switch style {
         case .top:
-            imageEdgeInsets = UIEdgeInsetsMake(-labelHeight-space/2.0, 0, 0, -labelWidth)
-            titleEdgeInsets = UIEdgeInsetsMake(0, -imageWidth, -imageHeight-space/2.0, 0)
+            imageEdgeInsets = UIEdgeInsets(top: -labelHeight-space/2.0, left: 0, bottom: 0, right: -labelWidth)
+            titleEdgeInsets = UIEdgeInsets(top: 0, left: -imageWidth, bottom: -imageHeight-space/2.0, right: 0)
         case .left:
-            imageEdgeInsets = UIEdgeInsetsMake(0, -space/2.0, 0, space/2.0)
-            titleEdgeInsets = UIEdgeInsetsMake(0, space/2.0, 0, -space/2.0)
+            imageEdgeInsets = UIEdgeInsets(top: 0, left: -space/2.0, bottom: 0, right: space/2.0)
+            titleEdgeInsets = UIEdgeInsets(top: 0, left: space/2.0, bottom: 0, right: -space/2.0)
         case .bottom:
-            imageEdgeInsets = UIEdgeInsetsMake(0, 0, -labelHeight-space/2.0, -labelWidth)
-            titleEdgeInsets = UIEdgeInsetsMake(-imageHeight-space/2.0, -imageWidth, 0, 0)
+            imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: -labelHeight-space/2.0, right: -labelWidth)
+            titleEdgeInsets = UIEdgeInsets(top: -imageHeight-space/2.0, left: -imageWidth, bottom: 0, right: 0)
         case .right:
-            imageEdgeInsets = UIEdgeInsetsMake(0, labelWidth+space/2.0, 0, -labelWidth-space/2.0)
-            titleEdgeInsets = UIEdgeInsetsMake(0, -labelWidth-space/2.0, 0, labelWidth+space/2.0)
+            imageEdgeInsets = UIEdgeInsets(top: 0, left: labelWidth+space/2.0, bottom: 0, right: -labelWidth-space/2.0)
+            titleEdgeInsets = UIEdgeInsets(top: 0, left: -labelWidth-space/2.0, bottom: 0, right: labelWidth+space/2.0)
         }
     }
 }
@@ -596,8 +632,8 @@ class UITableViewCellValue1 : UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
-        super.init(style: UITableViewCellStyle.value1, reuseIdentifier: reuseIdentifier)
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: UITableViewCell.CellStyle.value1, reuseIdentifier: reuseIdentifier)
     }
 }
 
@@ -607,8 +643,8 @@ class UITableViewCellValue2 : UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
-        super.init(style: UITableViewCellStyle.value2, reuseIdentifier: reuseIdentifier)
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: UITableViewCell.CellStyle.value2, reuseIdentifier: reuseIdentifier)
     }
 }
 
@@ -618,8 +654,8 @@ class UITableViewCellSubtitle : UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
-        super.init(style: UITableViewCellStyle.subtitle, reuseIdentifier: reuseIdentifier)
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: UITableViewCell.CellStyle.subtitle, reuseIdentifier: reuseIdentifier)
     }
 }
 

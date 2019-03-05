@@ -29,9 +29,9 @@ override func viewDidLoad() {
     let style = NSMutableParagraphStyle()
     style.alignment = .center
     
-    let attribute = [NSAttributedStringKey.foregroundColor : UIColor.white,
-                     NSAttributedStringKey.font : UIFont.systemFont(ofSize: 14),
-                     NSAttributedStringKey.paragraphStyle : style]
+    let attribute = [NSAttributedString.Key.foregroundColor : UIColor.white,
+                     NSAttributedString.Key.font : UIFont.systemFont(ofSize: 14),
+                     NSAttributedString.Key.paragraphStyle : style]
     
     scanmsk.frame = view.bounds
     scanmsk.scanFrame = scanFrame

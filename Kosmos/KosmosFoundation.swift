@@ -27,6 +27,15 @@ func *(left: Int, right: Double) -> Double { return Double(left) * right }
 func /(left: Double, right: Int) -> Double { return left / Double(right) }
 func /(left: Int, right: Double) -> Double { return Double(left) / right }
 
+func +(left: Float, right: Int) -> Float { return left + Float(right) }
+func +(left: Int, right: Float) -> Float { return Float(left) + right }
+func -(left: Float, right: Int) -> Float { return left - Float(right) }
+func -(left: Int, right: Float) -> Float { return Float(left) - right }
+func *(left: Float, right: Int) -> Float { return left * Float(right) }
+func *(left: Int, right: Float) -> Float { return Float(left) * right }
+func /(left: Float, right: Int) -> Float { return left / Float(right) }
+func /(left: Int, right: Float) -> Float { return Float(left) / right }
+
 /// 仿制的NSLog. 因为在swift中stderr等影响不了NSLog
 func KSLog(line: Int = #line, file: String = #file, function: String = #function, _ format: String, _ args: CVarArg...) {
     
@@ -458,33 +467,8 @@ extension String {
         if results.count == 0 {
             return false
         } else {
-            return checkIMEI(self)
+            return self.isIMEI2
         }
-    }
-    
-    /// 校验IMEI
-    private func checkIMEI(_ imei: String) -> Bool {
-        
-        if imei.count < 15 {
-            return false
-        }
-        
-        let last = imei.unicodeScalars.last!
-        let left = imei.dropLast().unicodeScalars
-        
-        var sum : UInt32 = 0
-        for (offset, element) in left.enumerated() {
-            var v = element.value - 48
-            if offset % 2 != 0 {
-                let a = v * 2
-                v = (a < 10) ? a : (a - 9)
-            }
-            sum += v
-        }
-        sum %= 10
-        sum = (sum == 0) ? 0 : (10 - sum)
-        
-        return (last.value - 48) == sum
     }
     
     /// 同NSString.lastPathComponent
@@ -513,6 +497,65 @@ extension String {
             if i >= 65 { sum -= 7 }      // A-Z 从65开始，但有初始值10，所以应该是减去55
         }
         return sum
+    }
+    
+    /// IMEI是国际移动通讯设备识别号(International Mobile Equipment Identity)的缩写，用于GSM系统。
+    ///
+    /// 由15位数字组成，前6位(TAC)是型号核准号码，代表手机类型。接着2位(FAC)是最后装配号，代表产地。后6位(SNR)是串号，代表生产顺序号。最后1位(SP)是检验码。 IMEI校验码算法：
+    /// ```
+    /// 1) 将偶数位数字分别乘以2，分别计算个位数和十位数之和
+    /// 2) 将奇数位数字相加，再加上上一步算得的值
+    /// 3) 如果得出的数个位是0则校验位为0，否则为10减去个位数
+    /// 如：35 89 01 80 69 72 41 偶数位乘以2得到5*2=10 9*2=18 1*2=02 0*2=00 9*2=18 2*2=04 1*2=02,计算奇数位数字之和和偶数位个位十位之和，得到 3+(1+0)+8+(1+8)+0+(0+2)+8+(0+0)+6+(1+8)+7+(0+4)+4+(0+2)=63 => 校验位 10-3 = 7
+    var isIMEI : Bool {
+        
+        guard let characters = self.cString(using: .utf8) else {
+            return false
+        }
+        
+        let length = characters.count - 1
+        if length != 15 {
+            return false
+        }
+        
+        let half = length / 2 - 1
+        
+        var sum = 0
+        for i in 0 ... half {
+            let a =  characters[2 * i + 0] - 48
+            let b = (characters[2 * i + 1] - 48) * 2
+            let c = (b < 10) ? b : (b - 9)
+            sum += Int(a) + Int(c) // Int8 + Int8 will overflow
+        }
+        sum %= 10
+        sum = (sum == 0) ? 0 : (10 - sum)
+        
+        return (characters[length - 1] - 48) == sum
+    }
+    
+    /// 校验IMEI
+    var isIMEI2 : Bool {
+        
+        if self.count < 15 {
+            return false
+        }
+        
+        let last = self.unicodeScalars.last!
+        let left = self.dropLast().unicodeScalars
+        
+        var sum : UInt32 = 0
+        for (offset, element) in left.enumerated() {
+            var v = element.value - 48
+            if offset % 2 != 0 {
+                let a = v * 2
+                v = (a < 10) ? a : (a - 9)
+            }
+            sum += v
+        }
+        sum %= 10
+        sum = (sum == 0) ? 0 : (10 - sum)
+        
+        return (last.value - 48) == sum
     }
 }
 
@@ -746,7 +789,7 @@ extension FileManager {
         }
         
         do {
-            try self.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: [FileAttributeKey.posixPermissions : 0777])
+            try self.createDirectory(atPath: path, withIntermediateDirectories: true)
         } catch {
             return nil
         }
@@ -792,5 +835,28 @@ extension FileManager {
         }
         
         return path
+    }
+}
+
+func dispatch_asyn_on_main(execute: @escaping () -> Void) {
+    
+    if Thread.isMainThread {
+        execute()
+    } else {
+        DispatchQueue.main.async(execute: execute)
+    }
+}
+
+fileprivate let kPriorityDefaultGlobalQueueValue = "kPriorityDefaultGlobalQueueKeyValue"
+fileprivate let kPriorityDefaultGlobalQueueKey = DispatchSpecificKey<String>.init()
+
+func dispatch_asyn_on_global(execute: @escaping () -> Void) {
+    
+    if let value = DispatchQueue.getSpecific(key: kPriorityDefaultGlobalQueueKey), value == kPriorityDefaultGlobalQueueValue {
+        execute()
+    } else {
+        let queue = DispatchQueue.global(qos: DispatchQoS.QoSClass.default)
+        queue.setSpecific(key: kPriorityDefaultGlobalQueueKey, value: kPriorityDefaultGlobalQueueValue)
+        queue.async(execute: execute)
     }
 }
